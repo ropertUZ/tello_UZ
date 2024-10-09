@@ -1,32 +1,51 @@
-## src
-Contiene el código del proyecto para controlar el dron y ejecutar el sistema de detección y seguimiento. Además de obtener los datos sobre las posiciones de los robots capturados por OptiTrack
+# UTILIZACIÓN DE UN SISTEMA DE CAPTURA DE MOVIMIENTO EXTERNO PARA EL CONTROL DEL MOVIMIENTO DE EQUIPOS DE DRONES
 
-Para inicializar el espacio de trabajo, en cada terminal que se utilice, se debe ejecutar el siguiente comando:
-```bash
-catkin build
-source devel/setup.bash
+Aquí se muestran los dos paquetes de ROS necesarios para hacer funcionar el sistema desarrollado, 
+mediante el que se utiliza OptiTrack para monitorizar y corregir el movimiento de los drones
+Tello EDU durante la ejecución de distintas trayectorias.
+
+El paquete optitrack_arena lanza un nodo que recibe la localización enviada por OptiTrack y la
+publica en el topic /optitrack/pose_{ID_Dron}.
+
+El paquete pytello lanza un nodo que va leyendo la localización de los drones en el topic anterior
+y controla el movimiento de los drones para que sigan una trayectoria predefinida. Se encuentra
+aquí todo el código fuente relacionado con la aplicación web, las 3 versiones del generador de
+trayectorias y las funciones de control y conexión con los drones.
+
+--------------------------------------------------------------------------------------------------
+
+## Instalación:
+
+Una vez que estos dos paquetes se encuentren en la carpeta src de un workspace de ROS, se deben
+compilar con 'catkin build'.
+
+A continuación, hay que asegurarse de tener las dependencias necesarias instaladas. Estas se
+encuentran en el archivo "requirements.txt" de la carpeta pytello.
+
+--------------------------------------------------------------------------------------------------
+
+## Ejecución:
+
+Para lanzar el sistema, se deben seguir los siguientes pasos:
+
+1. En la primera terminal, lanzar el máster de ROS:
+```
+roscore
 ```
 
-## src/pytello
-Contiene el código relativo al control del dron
-
-Ejecutar con:
-```bash
-python3 main.py
+2. En otra terminal, lanzar el nodo que recibe la localización de OptiTrack:
+```
+roslaunch optitrack_arena optitrack_arena.launch
 ```
 
-## src/optitrack_arena
-Contiene el código relativo a la obtención de datos de OptiTrack
-
-Para crear los nodos que obtendran y publicarán los datos de las posiciones del dron y Turtlebot capturados por OptiTrack, se debe ejecutar el siguiente comando:
-```bash
-roslaunch optitrack_arena tello_optitrack.launch
+3. En una tercera terminal, lanzar el nodo que controla los drones:
+```
+rosrun pytello main.py
 ```
 
-Si se quiere visualizar las posiciones y caminos de ambos robots, ejecutar en otra terminal:
-```bash
-rviz
-```
+Con esto, en la última terminal se mostrará la dirección IP del servidor web, que se puede abrir
+en un navegador al pulsar sobre ella.
 
+Para visualizar la trayectoria que sigue cada dron, se puede iniciar y configurar rviz.
 
 
