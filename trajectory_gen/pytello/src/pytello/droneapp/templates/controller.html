@@ -1,0 +1,294 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    .controller-box {
+        text-align: center;
+    }
+</style>
+
+<script>
+    let selectedDrone = 0;
+    let selectedVersion = 0;
+    let selectedTrajectory = 0;
+
+    $(document).ready(function() {
+        $('#drone1').change(function() {
+            if (this.checked) {
+                selectedDrone = 1;
+                $('#drone2').prop('checked', false);
+                $('#all').prop('checked', false);
+            } else {
+                selectedDrone = 0;
+            }
+            console.log(selectedDrone);
+
+        });
+        $('#drone2').change(function() {
+            if (this.checked) {
+                selectedDrone = 2;
+                $('#drone1').prop('checked', false);
+                $('#all').prop('checked', false);
+            } else {
+                selectedDrone = 0;
+            }
+            console.log(selectedDrone);
+        });
+        $('#all').change(function() {
+            if (this.checked) {
+                selectedDrone = 0;
+                $('#drone1').prop('checked', false);
+                $('#drone2').prop('checked', false);
+            } else {
+                selectedDrone = 0;
+            }
+            console.log(selectedDrone);
+        });
+
+        $('#startTrajectoryBtn').click(function() {
+            $('#trajectoryModal').show();
+        });
+
+        $('#selectVersionBtn').click(function() {
+            selectedVersion = $('input[name="version"]:checked').val();
+            $('#trajectoryModal').hide();
+            if (selectedVersion == 0 || selectedVersion == 1) {
+                $('#trajectoryTypeModal').show();
+            } else {
+                $('#trajectoryTypeModalv2').show();
+            }
+            console.log("Selected version:", selectedVersion);
+        });
+
+        $('#selectTrajectoryBtn').click(function() {
+            selectedTrajectory = $('input[name="trajectory"]:checked').val();
+            $('#trajectoryTypeModal').hide();
+            sendCommand('startTrajectory', { version: selectedVersion, trajectory: selectedTrajectory });
+            console.log("Selected trajectory:", selectedTrajectory);
+        });
+
+        $('#selectTrajectoryBtnv2').click(function() {
+            selectedTrajectory = $('input[name="trajectory"]:checked').val();
+            $('#trajectoryTypeModalv2').hide();
+            sendCommand('startTrajectory', { version: selectedVersion, trajectory: selectedTrajectory });
+            console.log("Selected trajectory:", selectedTrajectory);
+        });
+    });
+
+    function sendCommand(command, params = {}) {
+        console.log({ action: 'sendCommand', command: command, params: params });
+        params['command'] = command;
+        params['idDrone'] = selectedDrone;
+        $.post("/api/command/", params).done(function(json) {
+            console.log({ action: 'sendCommand', json: json });
+        }, 'json');
+    }
+
+    function showFileInput() {
+        document.getElementById('fileForm').style.display = 'block';
+    }
+
+    function submitFile() {
+        let formData = new FormData();
+        formData.append('file', document.getElementById('file').files[0]);
+        formData.append('file2', document.getElementById('file2').files[0]);
+        formData.append('idDrone', selectedDrone);
+        console.log({ action: 'submitFile', formData: formData });
+        $.ajax({
+            url: '/api/upload/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                console.log({ action: 'submitFile', data: data });
+            }
+        });
+    }
+
+    $(document).on('pageinit', function() {
+        $('#slider-speed').on("slidestop", function(event) {
+            let params = {
+                speed: $("#slider-speed").val(),
+            };
+            sendCommand('speed', params);
+        });
+    });
+</script>
+
+<div class="controller-box">
+    <h1>Remote Controller</h1>
+</div>
+
+<div class="controller-box">
+    <div data-role="controlgroup" data-type="horizontal">
+        <a href="#" data-role="button" onclick="sendCommand('takeOff'); return false;">Take Off</a>
+        <a href="#" data-role="button" onclick="sendCommand('land'); return false;">Land</a>
+    </div>
+</div>
+
+<div style="display: flex; justify-content: center;">
+    <table style="align-self: center;">
+        <td>
+            <div style="text-align: center;">
+                <div class="ui-nodisc-icon ui-alt-icon">
+                    <a id="up" href="#"
+                       class="ui-btn ui-shadow ui-corner-all ui-icon-carat-u
+                              ui-btn-icon-notext ui-btn-inline"
+                       onclick="sendCommand('up'); return false;"></a>
+                </div>
+                <div class="ui-nodisc-icon ui-alt-icon">
+                   <a href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-forward
+                                      ui-btn-icon-notext ui-btn-inline"
+                      onclick="sendCommand('clockwise'); return false;"></a>
+                   <a href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-back
+                                      ui-btn-icon-notext ui-btn-inline"
+                      onclick="sendCommand('counterClockwise'); return false;"></a>
+                </div>
+                <div class="ui-nodisc-icon ui-alt-icon">
+                    <a href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-carat-d
+                                       ui-btn-icon-notext ui-btn-inline"
+                       onclick="sendCommand('down'); return false;"></a>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <div style="text-align: center;">
+                <div class="ui-nodisc-icon ui-alt-icon">
+                    <a href="#"
+                       class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-u
+                                       ui-btn-icon-notext ui-btn-inline"
+                       onclick="sendCommand('forward'); return false;"></a>
+                </div>
+                <div class="ui-nodisc-icon ui-alt-icon">
+                   <a href="#"
+                      class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l
+                             ui-btn-icon-notext ui-btn-inline"
+                      onclick="sendCommand('left'); return false;"></a>
+                   <a href="#"
+                      class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r
+                             ui-btn-icon-notext ui-btn-inline"
+                      onclick="sendCommand('right'); return false;"></a>
+                </div>
+                <div class="ui-nodisc-icon ui-alt-icon">
+                    <a href="#"
+                       class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-d
+                              ui-btn-icon-notext ui-btn-inline"
+                       onclick="sendCommand('back'); return false;"></a>
+                </div>
+            </div>
+        </td>
+    </table>
+</div>
+
+<div class="controller-box">
+    <h3>Speed</h3>
+    <input type="range" name="slider-2" id="slider-speed" data-highlight="true" min="0" max="100" value="10">
+</div>
+
+<div class="controller-box">
+    <h3>Flip</h3>
+    <div data-role="controlgroup" data-type="horizontal">
+        <a href="#" data-role="button" data-inline="true" onclick="sendCommand('flipF'); return false;">Forward</a>
+        <a href="#" data-role="button" data-inline="true" onclick="sendCommand('flipL'); return false;">Left</a>
+        <a href="#" data-role="button" data-inline="true" onclick="sendCommand('flipR'); return false;">Right</a>
+        <a href="#" data-role="button" data-inline="true" onclick="sendCommand('flipB'); return false;">Back</a>
+    </div>
+</div>
+
+<div class="controller-box">
+    <h3>ADVANCED MODE</h3>
+    <div data-role="controlgroup" data-type="horizontal">
+        <a href="#" data-role="button" data-inline="true" id="startTrajectoryBtn">Start Trajectory</a>
+        <a href="#" data-role="button" data-inline="true" onclick="sendCommand('stopTrajectory'); return false;">Stop Trajectory</a>
+        <a href="#" data-role="button" data-inline="true" onclick="sendCommand('draw'); return false;">Draw Trajectory</a>
+    </div>
+</div>
+
+<!-- Modal para seleccionar versión -->
+<div id="trajectoryModal" style="display: none;">
+    <h3>Seleccionar Versión</h3>
+    <div>
+        <input type="radio" id="version1" name="version" value="0">
+        <label for="version1">Versión 1</label>
+    </div>
+    <div>
+        <input type="radio" id="version2" name="version" value="1">
+        <label for="version2">Versión 2</label>
+    </div>
+    <div>
+        <input type="radio" id="version3" name="version" value="2">
+        <label for="version3">Versión 3</label>
+    </div>
+    <a href="#" data-role="button" id="selectVersionBtn">Seleccionar Versión</a>
+</div>
+
+<!-- Modal para seleccionar tipo de trayectoria -->
+<div id="trajectoryTypeModal" style="display: none;">
+    <h3>Seleccionar Tipo de Trayectoria</h3>
+    <div>
+        <input type="radio" id="cuadrado" name="trajectory" value="0">
+        <label for="cuadrado">Cuadrado</label>
+    </div>
+    <div>
+        <input type="radio" id="ovalo" name="trajectory" value="1">
+        <label for="ovalo">Óvalo</label>
+    </div>
+    <div>
+        <input type="radio" id="circulo" name="trajectory" value="2">
+        <label for="circulo">Círculo</label>
+    </div>
+    <div>
+        <input type="radio" id="espiral" name="trajectory" value="3">
+        <label for="espiral">Espiral</label>
+    </div>
+    <div>
+        <input type="radio" id="ocho" name="trajectory" value="4">
+        <label for="ocho">Ocho</label>
+    </div>
+    <a href="#" data-role="button" id="selectTrajectoryBtn">Seleccionar Trayectoria</a>
+</div>
+
+<!-- Modal para seleccionar tipo de trayectoria -->
+<div id="trajectoryTypeModalv2" style="display: none;">
+    <h3>Seleccionar Tipo de Trayectoria</h3>
+    <div>
+        <input type="radio" id="cuadradov2" name="trajectory" value="0">
+        <label for="cuadradov2">Cuadrado</label>
+    </div>
+    <div>
+        <input type="radio" id="ovalov2" name="trajectory" value="1">
+        <label for="ovalov2">Óvalo</label>
+    </div>
+    <a href="#" data-role="button" id="selectTrajectoryBtnv2">Seleccionar Trayectoria</a>
+</div>
+
+<!-- Checkbox para indicar si usar el drone 1, el drone 2 o ambos -->
+<div class="controller-box">
+    <h3>Drone</h3>
+    <div data-role="controlgroup" data-type="horizontal">
+        <input type="checkbox" id="drone1" name="drone1" value="1">
+        <label for="drone1">Drone 1</label>
+        <input type="checkbox" id="drone2" name="drone2" value="2">
+        <label for="drone2">Drone 2</label>
+        <input type="checkbox" id="all" name="all" value="0">
+        <label for="all">All</label>
+    </div>
+</div>
+
+<div class="controller-box">
+    <div data-role="controlgroup" data-type="horizontal">
+        <a href="#" data-role="button" onclick="sendCommand('battery'); return false;">Battery</a>
+        <a href="#" data-role="button" onclick="showFileInput(); return false;">Seleccionar Archivos</a>
+    </div>
+</div>
+
+<div class="controller-box" id="fileForm" style="display: none;">
+    <h3>Seleccionar Archivos</h3>
+    <input type="file" id="file" name="file" accept=".txt">
+    <input type="file" id="file2" name="file2" accept=".txt">
+    <a href="#" data-role="button" onclick="submitFile(); return false;">Enviar Archivos</a>
+</div>
+
+{% endblock %}
