@@ -1,1 +1,3 @@
-Unzip src.zip file and keep the files in their corresponding folders to recompile sources if needed
+Unzip src.zip file and keep the files in their corresponding folders to recompile sources if needed. 
+
+Move the complete yoloModel folder inside pytello folder to compile
